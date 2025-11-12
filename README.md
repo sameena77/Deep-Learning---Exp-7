@@ -105,6 +105,8 @@ plt.show()
 ```
 
 **OUTPUT**
+
+
 <img width="500" height="370" alt="image" src="https://github.com/user-attachments/assets/035b11a8-2760-454e-9e97-bfe07060e035" />
 
 **Training loss**
