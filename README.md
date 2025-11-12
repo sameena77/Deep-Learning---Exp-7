@@ -6,48 +6,113 @@
 
 To develop a convolutional autoencoder for image denoising application.
 
-**THEORY**
-
 **Neural Network Model**
+<img width="498" height="252" alt="image" src="https://github.com/user-attachments/assets/4c5935fa-bec9-4cc1-a84e-c2f8dba6a3f2" />
 
-Include the neural network model diagram.
 
 **DESIGN STEPS**
 
-**STEP 1:**
+**STEP 1:** Load and Preprocess Data
 
-Write your own steps
+Load the MNIST dataset of handwritten digits.
 
-**STEP 2:**
+Normalize pixel values between 0 and 1 for faster convergence.
 
-**STEP 3**:**
+Reshape images to (28, 28, 1) for CNN input compatibility.
 
-**STEP 4:**
+**STEP 2:** Add Noise to Images
 
-**STEP 5:**
+Generate Gaussian noise and add it to both training and testing images.
 
-**STEP 6:**
+Use np.clip() to keep pixel values within valid range [0, 1].
+
+The noisy images act as inputs, and the clean images as targets.
+
+**STEP 3:** Build the Encoder Network
+
+Stack multiple Conv2D and MaxPooling2D layers.
+
+Gradually reduce spatial dimensions to compress the input image into a latent feature representation.
+
+**STEP 4:** Build the Decoder Network
+
+Stack Conv2D and UpSampling2D layers.
+
+Gradually reconstruct the original image size from the compressed encoding.
+
+Use sigmoid activation in the final layer to generate pixel values between 0 and 1.
+
+**STEP 5:** Compile and Train the Model
+
+Compile using Adam optimizer and binary crossentropy loss.
+
+Train the model with noisy images as input and clean images as output for a few epochs.
+
+Validate performance using test data.
+
+**STEP 6:** Evaluate and Visualize Results
+
+Predict denoised images using the trained model.
+
+Plot loss vs. validation loss to monitor performance.
+
+Display side-by-side comparison of original, noisy, and denoised images using Matplotlib.
 
 **PROGRAM**
 
-**Name:**
+**Name:** SAMEENA J
 
-**Register Number:**
+**Register Number:** 2305002019
+```
+from tensorflow.keras import layers, models, Input, datasets
+import numpy as np, matplotlib.pyplot as plt, pandas as pd
 
-#write your code here
+(x_train,_),(x_test,_) = datasets.mnist.load_data()
+x_train,x_test=[x.astype('float32')/255. for x in (x_train,x_test)]
+x_train,x_test=[x.reshape(-1,28,28,1) for x in (x_train,x_test)]
+noise=0.5
+x_train_n=np.clip(x_train+noise*np.random.normal(0,1,x_train.shape),0,1)
+x_test_n=np.clip(x_test+noise*np.random.normal(0,1,x_test.shape),0,1)
+
+inp=Input((28,28,1))
+x=layers.Conv2D(16,(3,3),activation='relu',padding='same')(inp)
+x=layers.MaxPooling2D((2,2),padding='same')(x)
+x=layers.Conv2D(8,(3,3),activation='relu',padding='same')(x)
+x=layers.MaxPooling2D((2,2),padding='same')(x)
+x=layers.Conv2D(8,(3,3),activation='relu',padding='same')(x)
+encoded=layers.MaxPooling2D((2,2),padding='same')(x)
+
+x=layers.Conv2D(8,(3,3),activation='relu',padding='same')(encoded)
+x=layers.UpSampling2D((2,2))(x)
+x=layers.Conv2D(8,(3,3),activation='relu',padding='same')(x)
+x=layers.UpSampling2D((2,2))(x)
+x=layers.Conv2D(16,(3,3),activation='relu')(x)
+x=layers.UpSampling2D((2,2))(x)
+decoded=layers.Conv2D(1,(3,3),activation='sigmoid',padding='same')(x)
+
+autoencoder=models.Model(inp,decoded)
+autoencoder.compile(optimizer='adam',loss='binary_crossentropy')
+autoencoder.fit(x_train_n,x_train,epochs=3,batch_size=256,validation_data=(x_test_n,x_test))
+
+pd.DataFrame(autoencoder.history.history)[['loss','val_loss']].plot()
+decoded_imgs=autoencoder.predict(x_test_n)
+n=10
+plt.figure(figsize=(20,4))
+for i in range(n):
+    for j,data in enumerate([x_test,x_test_n,decoded_imgs]):
+        ax=plt.subplot(3,n,i+1+j*n);plt.imshow(data[i].reshape(28,28),cmap='gray');ax.axis('off')
+plt.show()
+```
 
 **OUTPUT**
-
-**Model Summary**
-
-Include your model summary
+<img width="500" height="370" alt="image" src="https://github.com/user-attachments/assets/035b11a8-2760-454e-9e97-bfe07060e035" />
 
 **Training loss**
 
 **Original vs Noisy Vs Reconstructed Image**
+<img width="505" height="107" alt="image" src="https://github.com/user-attachments/assets/e64bdca0-3433-4d28-8dbe-190c2659a2bf" />
 
-Include a few sample images here.
 
 **RESULT**
 
-Include your result here
+Thus we have successfully developed a convolutional autoencoder for image denoising application.
